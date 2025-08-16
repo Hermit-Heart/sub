@@ -1635,6 +1635,8 @@ console.log('expiry.toString():', expiry.toString());
         periodValue: parseInt(document.getElementById('periodValue').value),
         periodUnit: document.getElementById('periodUnit').value,
         reminderDays: parseInt(document.getElementById('reminderDays').value) || 0,
+   // 新增：正确保存提醒时间
+    reminderTime: parseInt(document.getElementById('reminderTime').value) || 8,        
 		useLunar: document.getElementById('useLunar').checked // 新增修改
       };
       
@@ -1692,6 +1694,9 @@ console.log('expiry.toString():', expiry.toString());
           document.getElementById('periodValue').value = subscription.periodValue || 1;
           document.getElementById('periodUnit').value = subscription.periodUnit || 'month';
           document.getElementById('reminderDays').value = subscription.reminderDays !== undefined ? subscription.reminderDays : 7;
+          // 添加这行：加载提醒时间（默认8点）
+          document.getElementById('reminderTime').value = 
+        subscription.reminderTime !== undefined ? subscription.reminderTime : 8;
 		  document.getElementById('useLunar').checked = !!subscription.useLunar; // 新增修改
           
           clearFieldErrors();
