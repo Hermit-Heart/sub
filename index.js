@@ -734,9 +734,39 @@ const adminPage = `
             <input type="number" id="reminderDays" min="0" value="7"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             <p class="text-xs text-gray-500 mt-1">0 = 仅到期日当天提醒，1+ = 提前N天开始提醒</p>
-            <div class="error-message text-red-500"></div>
+
+ <!-- 新增提醒时间选择器 -->
+           <div>
+    <label for="reminderTime" class="block text-sm font-medium text-gray-700 mb-1">每日提醒时间</label>
+    <select id="reminderTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+      <option value="0">0点</option>
+      <option value="1">1点</option>
+      <option value="2">2点</option>
+      <option value="3">3点</option>
+      <option value="4">4点</option>
+      <option value="5">5点</option>
+      <option value="6">6点</option>
+      <option value="7">7点</option>
+      <option value="8" selected>8点</option>
+      <option value="9">9点</option>
+      <option value="10">10点</option>
+      <option value="11">11点</option>
+      <option value="12">12点</option>
+      <option value="13">13点</option>
+      <option value="14">14点</option>
+      <option value="15">15点</option>
+      <option value="16">16点</option>
+      <option value="17">17点</option>
+      <option value="18">18点</option>
+      <option value="19">19点</option>
+      <option value="20">20点</option>
+      <option value="21">21点</option>
+      <option value="22">22点</option>
+      <option value="23">23点</option>
+    <p class="text-xs text-gray-500 mt-1">设置每天发送提醒的时间（北京时间）</p>
+    <div class="error-message text-red-500"></div> <!-- 新增的错误消息容器 -->
+           </div>
           </div>
-          
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">选项设置</label>
             <div class="space-y-2">
@@ -2874,6 +2904,7 @@ async function createSubscription(subscription, env) {
       periodValue: subscription.periodValue || 1,
       periodUnit: subscription.periodUnit || 'month',
       reminderDays: subscription.reminderDays !== undefined ? subscription.reminderDays : 7,
+      reminderTime: subscription.reminderTime !== undefined ? subscription.reminderTime : 8, // 默认8点
       notes: subscription.notes || '',
       isActive: subscription.isActive !== false,
       autoRenew: subscription.autoRenew !== false,
@@ -3381,6 +3412,7 @@ async function checkExpiringSubscriptions(env) {
   try {
     const now = new Date();
     const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const currentHour = beijingTime.getHours(); // 获取当前北京时间的小时
     console.log('[定时任务] 开始检查即将到期的订阅 UTC: ' + now.toISOString() + ', 北京时间: ' + beijingTime.toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'}));
 
     const subscriptions = await getAllSubscriptions(env);
@@ -3392,11 +3424,16 @@ async function checkExpiringSubscriptions(env) {
     let hasUpdates = false;
 
 for (const subscription of subscriptions) {
+// 检查当前小时是否匹配订阅的提醒时间
+      const reminderTime = subscription.reminderTime !== undefined ? subscription.reminderTime : 8;
+      if (currentHour !== reminderTime) {
+        console.log(`[定时任务] 跳过订阅 "${subscription.name}"，设置时间: ${reminderTime}点，当前时间: ${currentHour}点`);
+        continue;
+      }
   if (subscription.isActive === false) {
     console.log('[定时任务] 订阅 "' + subscription.name + '" 已停用，跳过');
     continue;
   }
-
   let daysDiff;
   if (subscription.useLunar) {
     const expiryDate = new Date(subscription.expiryDate);
@@ -3512,7 +3549,7 @@ for (const subscription of subscriptions) {
       ...subscription,
       daysRemaining: daysDiff
     });
-  }
+  } 
 }
 
     if (hasUpdates) {
